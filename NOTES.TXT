@@ -1,0 +1,195 @@
+INSTALL MYSQL
+INSTALL WORKBENCH
+CREATE NEW  db THEN table AND INSERT ONE TEMP DATA
+
+OPEN VSCODE
+CREATE TWO DIR SERVER AND CLIENT
+IN SERVER COMMAND npm init AND COMPLETE ACTION
+
+IN SERVER
+
+install required npm express, nodemon, mysql or mysql2 etc
+
+import express and make const with express as app THEN
+app.listen(8181,()=>{
+    console.log("Backend connected")
+})
+
+for stable a port 
+
+then import mysql and make connection 
+const db = mysql.createConnection({
+    host:"localhost",
+    user:"root",
+    password:"mysql1234",
+    database:"bookshop"
+})
+
+
+then define root / with app.get
+app.get("/",(req,res)=>{
+    res.json("Hello backend is here")
+}) 
+
+then define "/books" url with get method with query to get or display the db data
+
+app.get("/books", (req, res) => {
+    const q = "SELECT * FROM books"
+    db.query(q, (data, err) => {
+        if (err) {
+            return res.json(err)
+        }
+        return res.json(data)
+    })
+})
+
+if getting error hit the following command in WORKBENCH 
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'mysql1234';
+
+or install mysql2 npm instead of mysql
+
+insert data into table
+
+app.post("/books", (req, res) => {
+    const q = "INSERT INTO books (`title`, `des`, `cover`) VALUES (?) "
+    const values = ["title from bc", "dec from bc", "cover from bc"]
+
+    db.query(q, [values], (data, err) => {
+        if (err) {
+            return res.json(err)
+        } return res.json(data)
+    })
+})
+
+then for trail got postman and take post method and hit  POST   localhost:8181/books
+200 ok
+
+{
+    "fieldCount": 0,
+    "affectedRows": 1,
+    "insertId": 2,
+    "serverStatus": 2,
+    "warningCount": 0,
+    "message": "",
+    "protocol41": true,
+    "changedRows": 0
+}
+
+ // following method call in postman with POST method and URL localhost:8181/books
+app.post("/books", (req, res) => {
+    const q = "INSERT INTO books (`title`, `des`, `cover`) VALUES (?) "
+    const values = ["title from bc", "dec from bc", "cover from bc"]
+    db.query(q, [values], (err, data) => {
+        if (err) return res.json(err)
+        return res.json("Book has been added successfully")
+    })
+})
+
+
+//now make the post method to inset data from the client and for currently it will be tested with postman to use POST and URL and data will insert at the Body>raw>JSON in the form of json like following
+dbut for this we need to implement express js because by default we can not send data to express server 
+thats why we make express server middleware as following on allows us to send any JSON file using a client
+app.use(express,json()); after the const app = express()
+then 
+
+app.post("/books", (req, res) => {
+    const q = "INSERT INTO books (`title`, `desc`, `cover`) VALUES (?) "
+    const values = [
+        req.body.title,
+        req.body.desc,
+        req.body.cover,
+    ]
+    db.query(q, [values], (err, data) => {
+        if (err) return res.json(err)
+        return res.json("Book has been added successfully")
+    })
+})
+
+and in postmen at POST  localhost:8181/books and with body>raw>json
+{
+    "title": "Thor",
+    "desc": "The god of the storm",
+    "cover": "thor"
+}
+
+
+
+now develop client
+
+create app
+
+install react-router-dom
+create pages and Books, Add, Update and navigate with url in App.js file
+
+then to fetch all data in Books install axios
+
+ const [books, setBooks] = useState([])
+    useEffect(()=>{
+        const fetchAllBooks = async ()=>{
+            try{
+                const res = await axios.get("http://localhost:8181/books")
+                console.log(res)
+            }
+            catch(err){
+                console.log(err)
+            }
+        }
+    })
+
+here there will be an error backend server will no allow an application to use backend api
+so install npm i cors library in backend and import and use with app.use(cors()) in index.js
+
+
+
+Books.js 
+it will show all existing books in the db at server http://localhost:8181/books  with get
+
+Add.js
+
+it will add the new book details ad onChange even and setBook with useState
+and then access the changed object notation with book and sent to the server http://localhost:8181/books with post method and book notation useState
+and if everything will be perfect then navigation to the home or "/" 
+if any error then show error or text on the same add page
+
+update if price attribute not added in the table and server
+
+
+now style
+
+
+for delete 
+
+in backend add app.delete method with "/books/:id"
+app.delete("/books/:id", (req,res)=>{
+  const bookId = req.params.id;
+  const q = "DELETE FROM books WHERE id  = ?"
+  db.query(q,[bookId], (err, data)=>{
+    if(err) return res.json(err)
+    return res.json("Book deleted")
+  })
+})
+
+in client
+<button className="delete" onClick={() => handleDelete(book.id)}>Delete</button>
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete("http://localhost:8181/books/" + id)
+      window.location.reload()
+    }
+    catch (err) {
+      console.log(err)
+    }
+  }
+
+now update
+in Books add Update button with id
+            <button className="update">
+              <Link className='link' to={`/update/${book.id}`}>Update</Link>
+            </button>
+
+add update page with react router with id
+        <Route path='/update/:id' element={<Update/>}/>
+
+
+then in server for update implement app.put method
